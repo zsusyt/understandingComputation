@@ -1,25 +1,25 @@
 class Machine {
-  constructor(expression, environment) {
-    this.expression = expression;
+  constructor(statement, environment) {
+    this.statement = statement;
     this.environment = environment;
   }
 
   step() {
-    this.expression = this.expression.reduce(this.environment);
+    [this.statement, this.environment] = this.statement.reduce(this.environment);
   }
 
   run() {
     let step = 0;
-    while(this.expression.reducible()) {
+    while(this.statement.reducible()) {
       console.log('==========================')
       console.log('step:', ++step);
-      console.log(this.expression.toString());
+      console.log(this.statement.toString(), ',', this.environment);
       this.step()
     }
 
     console.log('========================')
     console.log('result')
-    console.log(this.expression.toString())
+    console.log(this.statement.toString(), ',', this.environment);
   }
 }
 

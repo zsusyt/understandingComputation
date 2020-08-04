@@ -3,8 +3,12 @@ class Num {
     this.value = value;
   }
 
+  static prod(value) {
+    return new Num(value);
+  }
+
   toString() {
-    return `<<${this.value}>>`
+    return `${this.value}`
   }
 
   reducible() {
@@ -17,8 +21,12 @@ class Bool {
     this.value = value;
   }
 
+  static prod(value) {
+    return new Bool(value);
+  }
+
   toString() {
-    return `<<${this.value}>>`
+    return `${this.value}`
   }
 
   reducible() {
@@ -31,8 +39,12 @@ class Variable {
     this.name = name;
   }
 
+  static prod(name) {
+    return new Variable(name);
+  }
+
   toString() {
-    return `<<${this.name}>>`
+    return `${this.name}`
   }
 
   reduce(environment) {
@@ -50,8 +62,12 @@ class Add {
     this.right = right;
   }
 
+  static prod(left, right) {
+    return new Add(left, right);
+  }
+
   toString() {
-    return `<<${this.left.toString()} + ${this.right.toString()}>>`
+    return `${this.left.toString()} + ${this.right.toString()}`
   }
 
   reduce(environment) {
@@ -75,11 +91,15 @@ class Multiply {
     this.right = right;
   }
 
-  toString() {
-    return `<<${this.left.toString()} * ${this.right.toString()}>>`
+  static prod(left, right) {
+    return new Multiply(left, right);
   }
 
-  reduce() {
+  toString() {
+    return `${this.left.toString()} * ${this.right.toString()}`
+  }
+
+  reduce(environment) {
     if(this.left.reducible()) {
       return new Add(this.left.reduce(environment), this.right);
     } else if(this.right.reducible()) {
@@ -100,11 +120,15 @@ class LessThan {
     this.right = right;
   }
 
-  toString() {
-    return `<<${this.left.toString()} < ${this.right.toString()}>>`
+  static prod(left, right) {
+    return new LessThan(left, right);
   }
 
-  reduce() {
+  toString() {
+    return `${this.left.toString()} < ${this.right.toString()}`
+  }
+
+  reduce(environment) {
     if(this.left.reducible()) {
       return new LessThan(this.left.reduce(environment), this.right);
     } else if(this.right.reducible()) {
@@ -119,10 +143,11 @@ class LessThan {
   }
 }
 
-export {
-  Num,
-  Bool,
-  Add,
-  Multiply,
-  LessThan,
+export default {
+  Num: Num.prod,
+  Bool: Bool.prod,
+  Variable: Variable.prod,
+  Add: Add.prod,
+  Multiply: Multiply.prod,
+  LessThan: LessThan.prod,
 }
