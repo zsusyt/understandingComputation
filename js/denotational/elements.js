@@ -7,16 +7,12 @@ class Num {
     return new Num(value);
   }
 
-  evaluate(environment) {
-    return this
+  toJs() {
+    return e => this.value
   }
 
   toString() {
     return `${this.value}`
-  }
-
-  reducible() {
-    return false
   }
 }
 
@@ -29,16 +25,12 @@ class Bool {
     return new Bool(value);
   }
 
-  evaluate(environment) {
-    return this;
+  toJs() {
+    return e => this.value
   }
 
   toString() {
     return `${this.value}`
-  }
-
-  reducible() {
-    return false
   }
 }
 
@@ -51,20 +43,11 @@ class Variable {
     return new Variable(name);
   }
 
-  evaluate(environment) {
-    return environment[this.name];
+  toJs() {
+    return e => e[this.name]
   }
-
   toString() {
     return `${this.name}`
-  }
-
-  reduce(environment) {
-    return environment[this.name];
-  }
-
-  reducible() {
-    return true
   }
 }
 
@@ -78,10 +61,8 @@ class Add {
     return new Add(left, right);
   }
 
-  evaluate(environment) {
-    return new Num(
-      this.left.evaluate(environment).value + this.right.evaluate(environment).value
-    )
+  toJs() {
+    return e => this.left.toJs().call(null, e) + this.right.toJs().call(null, e)
   }
 
   toString() {
@@ -99,10 +80,8 @@ class Multiply {
     return new Multiply(left, right);
   }
 
-  evaluate(environment) {
-    return new Num(
-      this.left.evaluate(environment).value * this.right.evaluate(environment).value
-    )
+  toJs() {
+    return e => this.left.toJs().call(null, e) * this.right.toJs().call(null, e)
   }
 
   toString() {
@@ -121,14 +100,15 @@ class LessThan {
     return new LessThan(left, right);
   }
 
-  toString() {
-    return `${this.left.toString()} < ${this.right.toString()}`
+  toJs() {
+    return e => {
+      let left = this.left.toJs().call(null, e), right = this.right.toJs().call(null, e);
+      return left < right;
+    }
   }
 
-  evaluate(environment) {
-    return new Bool(
-      this.left.evaluate(environment).value < this.right.evaluate(environment).value
-    )
+  toString() {
+    return `${this.left.toString()} < ${this.right.toString()}`
   }
 
 }
@@ -141,9 +121,9 @@ class DoNothing {
     return 'do-nothing'
   }
 
-  evaluate(environment) {
-    return environment
-  } 
+  toJs() {
+    return e => e
+  }
 
 }
 
@@ -157,14 +137,14 @@ class Assign {
     return new Assign(name, expression);
   }
 
-  toString() {
-    return `${this.name} = ${this.expression}`
+  toJs() {
+    return e => Object.assign({}, e, {
+      [this.name]: this.expression.toJs().call(null, e)
+    })
   }
 
-  evaluate(environment) {
-    return Object.assign({}, environment, {
-      [this.name]: this.expression.evaluate(environment)
-    })
+  toString() {
+    return `${this.name} = ${this.expression}`
   }
 
 }
@@ -184,11 +164,13 @@ class If {
     return `if (${this.condition}) { ${this.consequence} } else { ${this.alternative} }`
   }
 
-  evaluate(environment) {
-    if(this.condition.evaluate(environment)) {
-      return this.consequence.evaluate(environment)
-    } else {
-      return this.alternative.evaluate(environment)
+  toJs() {
+    return e => {
+      if(this.condition.toJs().call(null, e).value) {
+        return this.consequence.toJs().call(null, e)
+      } else {
+        return this.alternative.toJs().call(null, e)
+      }
     }
   }
 }
@@ -207,8 +189,8 @@ class Sequence {
     return `${this.first}; ${this.second}`
   }
 
-  evaluate(environment) {
-    return this.second.evaluate(this.first.evaluate(environment))
+  toJs() {
+    return e => this.second.toJs().call(null, this.first.toJs().call(null, e))
   }
 }
 
@@ -226,11 +208,13 @@ class While {
     return `while (${this.condition}) { ${this.body} }`
   }
 
-  evaluate(environment) {
-    if(this.condition.evaluate(environment).value) {
-      return this.evaluate(this.body.evaluate(environment))
-    } else {
-      return environment
+  toJs() {
+    return e => {
+      while(this.condition.toJs().call(null, e)) {
+        console.log(e)
+        e = this.body.toJs().call(null, e)
+      }
+      return e
     }
   }
 }
