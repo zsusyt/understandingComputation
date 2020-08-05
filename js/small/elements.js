@@ -101,9 +101,9 @@ class Multiply {
 
   reduce(environment) {
     if(this.left.reducible()) {
-      return new Add(this.left.reduce(environment), this.right);
+      return new Multiply(this.left.reduce(environment), this.right);
     } else if(this.right.reducible()) {
-      return new Add(this.left, this.right.reduce(environment))
+      return new Multiply(this.left, this.right.reduce(environment))
     } else {
       return new Num(this.left.value * this.right.value);
     }
