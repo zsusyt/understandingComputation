@@ -39,13 +39,28 @@ class NFARulebook {
   follow_rules_for(state, character) {
     return this.rules_for(state, character).map( rule => rule.follow())
   }
+
+  follow_free_moves(states) {
+    const more_states = this.next_states(states, null)
+
+    if(include(states, more_states)) {
+      return states
+    } else {
+      return this.follow_free_moves(add(states, more_states))
+    }
+
+  }
 }
 
 class NFA {
   constructor(current_states, accept_states, rulebook) {
-    this.current_states = current_states;
+    this._current_states = current_states;
     this.accept_states = accept_states;
     this.rulebook = rulebook;
+  }
+
+  get current_states() {
+    return this.rulebook.follow_free_moves(this._current_states)
   }
 
   static prod(...args) {
@@ -57,7 +72,7 @@ class NFA {
   }
 
   read_character(character) {
-    this.current_states = this.rulebook.next_states(this.current_states, character)
+    this._current_states = this.rulebook.next_states(this.current_states, character)
   }
 
   read_string(string) {
@@ -87,6 +102,18 @@ class NFADesign {
     nfa.read_string(string)
     return nfa.accepting()
   }
+}
+
+function include(master, slave) {
+  for(let item of slave) {
+    if(!master.includes(item)) return false;
+  }
+
+  return true
+}
+
+function add(master, slave) {
+  return Array.from(new Set(master.concat(slave)))
 }
 
 export default {
